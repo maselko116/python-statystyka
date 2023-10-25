@@ -2,9 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 # sieci = pd.read_csv('dane/sieci.csv', sep=',')
 # kategorie = pd.read_csv('dane/kategorie.csv', sep=',')
-drogi = pd.read_csv('dane/drogi.csv', sep="\t")
-kategorie = pd.read_csv('dane/kategorie.csv', sep="\t")
-stacje = pd.read_csv('dane/stacje.csv', sep="\t")
+drogi = pd.read_csv('python-statystyka-master/dane/drogi.csv', sep="\t")
+kategorie = pd.read_csv('python-statystyka-master/dane/kategorie.csv', sep="\t")
+stacje = pd.read_csv('python-statystyka-master/dane/stacje.csv', sep="\t")
 
 # stacje = pd.read_csv('dane/stacje.csv', sep=',')
 
@@ -68,7 +68,17 @@ print(wyniki)
 
 najdluzsze_drogi = drogi_z_kategoriami.loc[drogi_z_kategoriami.groupby('kategoria')['dlugosc'].idxmax()]
 
+
+
+#WYKRES
+
+srednia_ilosc_stacji_na_drodze = ilosc_stacji_na_drodze / drogi['dlugosc']
+print(srednia_ilosc_stacji_na_drodze)
+
+
 # WYKRES 4
+
+
 plt.figure(figsize=(10, 6))
 plt.bar(najdluzsze_drogi['kategoria'], najdluzsze_drogi['dlugosc'])
 plt.xlabel('Kategoria Drogowa')
@@ -76,3 +86,42 @@ plt.ylabel('Długość Drogi w km')
 plt.title('Najdłuższe Drogi w Każdej Kategorii')
 plt.xticks(najdluzsze_drogi['kategoria'])
 plt.show()
+
+najdluzsze_drogi = drogi.groupby('id_kategorii').apply(lambda x: x.nlargest(3, 'dlugosc')).reset_index(drop=True)
+
+
+
+#WYKRES 5
+
+plt.figure(figsize=(10, 6))
+colors = ['coral', 'lightblue', 'lightgreen', 'magenta']
+
+
+for kategoria, colors in zip(najdluzsze_drogi['id_kategorii'].unique(), colors):
+    subset = najdluzsze_drogi[najdluzsze_drogi['id_kategorii'] == kategoria]
+    
+    plt.bar(subset['nazwa'], subset['dlugosc'], color=colors, label=f'kategoria {kategoria}')
+
+plt.xlabel('Nazwa Drogi')
+plt.ylabel('Długość Drogi')
+plt.title('3 Najdłuższe Drogi dla Każdej Kategorii')
+plt.xticks(rotation=45)
+plt.legend()
+plt.show()
+
+#WYKRES 6 
+
+# dlugosci = stacje_z_drogami.groupby('nazwa')['id_stacji'].count().reset_index()
+
+# srednia_odleglosc = stacje_z_drogami.groupby('nazwa')['id_stacji'].count().reset_index()
+# srednia_odleglosc = srednia_odleglosc.rename(columns={'id_stacji': 'ilosc_stacji'})
+# srednia_odleglosc['srednia_odleglosc'] = srednia_odleglosc['ilosc_stacji'] / dlugosci['dlugosc']
+
+# # Tworzenie wykresu
+# plt.figure(figsize=(10, 6))
+# plt.bar(srednia_odleglosc['nazwa'], srednia_odleglosc['srednia_odleglosc'], color='lightblue')
+# plt.xlabel('Nazwa Drogi')
+# plt.ylabel('Średnia Odległość od Stacji')
+# plt.title('Średnia Odległość od Stacji na Drodze')
+# plt.xticks(rotation=45)
+# plt.show()
