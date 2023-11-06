@@ -73,7 +73,6 @@ najdluzsze_drogi = drogi_z_kategoriami.loc[drogi_z_kategoriami.groupby('kategori
 #WYKRES
 
 srednia_ilosc_stacji_na_drodze = ilosc_stacji_na_drodze / drogi['dlugosc']
-print(srednia_ilosc_stacji_na_drodze)
 
 
 # WYKRES 4
@@ -109,6 +108,8 @@ plt.xticks(rotation=45)
 plt.legend()
 plt.show()
 
+
+
 #WYKRES 6 
 
 # dlugosci = stacje_z_drogami.groupby('nazwa')['id_stacji'].count().reset_index()
@@ -125,3 +126,39 @@ plt.show()
 # plt.title('Średnia Odległość od Stacji na Drodze')
 # plt.xticks(rotation=45)
 # plt.show()
+
+stacje_per_droga = stacje.groupby('id_drogi').size().reset_index(name='liczba_stacji')
+drogi_stacje = pd.merge(drogi, stacje_per_droga, on='id_drogi', how='left')
+drogi_stacje['srednia_odleglosc'] = drogi_stacje.apply(
+    lambda row: row['dlugosc'] / (row['liczba_stacji'] - 1) if row['liczba_stacji'] > 1 else None, axis=1
+)
+drogi_stacje = drogi_stacje.dropna(subset=['srednia_odleglosc'])
+
+# Wybór dróg z największą liczbą stacji
+top_drogi_stacje = drogi_stacje.nlargest(10, 'liczba_stacji')
+
+# Tworzenie wykresu
+fig, ax1 = plt.subplots(figsize=(14, 7))
+
+# Słupki dla długości drogi
+ax1.bar(top_drogi_stacje['nazwa'], top_drogi_stacje['dlugosc'], color='blue', alpha=0.6)
+ax1.set_xlabel('Nazwa Drogi')
+ax1.set_ylabel('Długość Drogi (km)', color='blue')
+ax1.tick_params(axis='y', labelcolor='blue')
+ax1.set_xticklabels(top_drogi_stacje['nazwa'], rotation=90)
+
+# Linia dla liczby stacji
+ax2 = ax1.twinx()
+ax2.plot(top_drogi_stacje['nazwa'], top_drogi_stacje['liczba_stacji'], color='red', marker='o')
+ax2.set_ylabel('Liczba Stacji', color='red')
+ax2.tick_params(axis='y', labelcolor='red')
+
+# Legenda
+lines, labels = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax2.legend(lines + lines2, labels + labels2, loc='best')
+
+plt.title('Długość i liczba stacji na najbardziej zatłoczonych drogach')
+ax1.grid(True)
+plt.tight_layout()
+plt.show()
